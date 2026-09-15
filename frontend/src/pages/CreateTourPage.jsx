@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { createTour } from "../api/tourApi";
 import { getUserId } from "../auth/authStorage";
 
+import { apiError, commaList } from "../api/responseUtils";
+
 function CreateTourPage() {
   const navigate = useNavigate();
 
@@ -14,6 +16,7 @@ function CreateTourPage() {
   });
 
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   function handleChange(e) {
     setForm({
@@ -24,6 +27,8 @@ function CreateTourPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (busy) return;
+    setBusy(true);
     setError("");
 
     try {
@@ -32,15 +37,14 @@ function CreateTourPage() {
         name: form.name,
         description: form.description,
         difficulty: Number(form.difficulty),
-        tags: form.tags
-          ? form.tags.split(",").map((tag) => tag.trim())
-          : [],
+        tags: commaList(form.tags),
       });
 
       navigate("/tours");
     } catch (err) {
-      console.error(err);
-      setError("Failed to create tour.");
+      setError(apiError(err, "Failed to create tour."));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -71,14 +75,11 @@ function CreateTourPage() {
 
         <div className="input-group">
           <label>Difficulty</label>
-          <input
-            name="difficulty"
-            type="number"
-            min="0"
-            value={form.difficulty}
-            onChange={handleChange}
-            required
-          />
+          <select name="difficulty" value={form.difficulty} onChange={handleChange}>
+            <option value="0">Easy</option>
+            <option value="1">Medium</option>
+            <option value="2">Hard</option>
+          </select>
         </div>
 
         <div className="input-group">
@@ -91,7 +92,7 @@ function CreateTourPage() {
           />
         </div>
 
-        <button>Create</button>
+        <button disabled={busy}>Create</button>
 
         {error && <p className="error">{error}</p>}
       </form>

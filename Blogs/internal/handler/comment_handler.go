@@ -33,6 +33,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
+	request.AuthorID = c.GetString(identityEmailKey)
 	comment, err := h.commentService.CreateComment(blogID, request.AuthorID, request.Text)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -1,52 +1,39 @@
 import { Link, useNavigate } from "react-router-dom";
-import { getProfile, isLoggedIn, logout } from "../auth/authStorage";
+import { getProfile, getRole, homePath, isLoggedIn, logout } from "../auth/authStorage";
 
-function Navbar() {
+export default function Navbar() {
   const navigate = useNavigate();
-  const profile = getProfile();
-
+  const loggedIn = isLoggedIn();
+  const role = getRole();
   function handleLogout() {
     logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
   }
-
   return (
     <nav className="navbar">
-      <Link to="/login" className="brand">
-        TourApp
-      </Link>
-
+      <Link to={homePath()} className="brand">TourApp</Link>
       <div className="nav-links">
-
-  {isLoggedIn() && (
-    <>
-      <Link to="/profile">Profile</Link>
-      <Link to="/blogs">Blogs</Link>
-      <Link to="/tours">Tours</Link>
-      <Link to="/cart">Cart</Link>
-      <Link to="/follow">Follow</Link>
-    </>
-  )}
-
-  {!isLoggedIn() && (
-    <>
-      <Link to="/login">Login</Link>
-      <Link to="/register">Register</Link>
-    </>
-  )}
-
-  {isLoggedIn() && profile && (
-    <span className="nav-user">{profile.username}</span>
-  )}
-
-  {isLoggedIn() && (
-    <button onClick={handleLogout} className="link-button">
-      Logout
-    </button>
-  )}
-</div>
+        {loggedIn ? <>
+          <Link to="/profile">Profile</Link>
+          <Link to="/blogs">Blogs</Link>
+          <Link to="/follow">Follow</Link>
+          {role === "GUIDE" && <>
+            <Link to="/tours">My Tours</Link>
+            <Link to="/tours/create">Create Tour</Link>
+          </>}
+          {role === "TOURIST" && <>
+            <Link to="/tours/published">Published Tours</Link>
+            <Link to="/cart">Cart</Link>
+            <Link to="/position">Position Simulator</Link>
+            <Link to="/execution">Active Execution</Link>
+          </>}
+          <span className="nav-user">{getProfile()?.username}</span>
+          <button onClick={handleLogout} className="link-button">Logout</button>
+        </> : <>
+          <Link to="/login">Login</Link>
+          <Link to="/register">Register</Link>
+        </>}
+      </div>
     </nav>
   );
 }
-
-export default Navbar;

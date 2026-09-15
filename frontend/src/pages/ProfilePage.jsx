@@ -1,133 +1,59 @@
 import { useEffect, useState } from "react";
 import { getMyProfile, updateMyProfile } from "../api/authApi";
 import { saveProfile } from "../auth/authStorage";
+import { apiError } from "../api/responseUtils";
 
-function ProfilePage() {
-  const [profile, setProfile] = useState({
-    username: "",
-    email: "",
-    role: "",
-    firstName: "",
-    lastName: "",
-    profileImageUrl: "",
-    biography: "",
-    motto: "",
-  });
-
+const editable = [
+  ["firstName", "First Name"], ["lastName", "Last Name"],
+  ["profileImageUrl", "Profile Image URL"], ["biography", "Biography"], ["motto", "Motto"],
+];
+export default function ProfilePage() {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-
+  const [error, setError] = useState("");
   useEffect(() => {
-    loadProfile();
+    let live = true;
+    getMyProfile().then(({ data }) => {
+      if (!data?.email) throw new Error("Missing profile");
+      if (live) { setProfile(data); saveProfile(data); }
+    }).catch((err) => { if (live) setError(apiError(err, "Could not load your profile.")); })
+      .finally(() => { if (live) setLoading(false); });
+    return () => { live = false; };
   }, []);
-
-  async function loadProfile() {
+  function change(event) { setProfile({ ...profile, [event.target.name]: event.target.value }); }
+  async function save(event) {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true); setError(""); setMessage("");
     try {
-      const response = await getMyProfile();
-      setProfile(response.data);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  function handleChange(e) {
-    setProfile({
-      ...profile,
-      [e.target.name]: e.target.value,
-    });
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    try {
-      await updateMyProfile({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        profileImageUrl: profile.profileImageUrl,
-        biography: profile.biography,
-        motto: profile.motto,
-      });
-
-      saveProfile(profile);
+      await updateMyProfile(Object.fromEntries(editable.map(([field]) => [field, profile[field] || ""])));
+      const { data } = await getMyProfile();
+      if (!data?.email) throw new Error("Missing profile");
+      setProfile(data); saveProfile(data);
       setMessage("Profile updated successfully.");
     } catch (err) {
-      console.error(err);
-      setMessage("Failed to update profile.");
-    }
+      setError(apiError(err, "Could not save or reload your profile."));
+    } finally { setBusy(false); }
   }
-
-  return (
-    <div className="card form">
-      <h1>My Profile</h1>
-
-      <form onSubmit={handleSubmit}>
-
-        <div className="input-group">
-          <label>Username</label>
-          <input value={profile.username} disabled />
-        </div>
-
-        <div className="input-group">
-          <label>Email</label>
-          <input value={profile.email} disabled />
-        </div>
-
-        <div className="input-group">
-          <label>Role</label>
-          <input value={profile.role} disabled />
-        </div>
-
-        <div className="input-group">
-          <label>First Name</label>
-          <input
-            name="firstName"
-            value={profile.firstName || ""}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Last Name</label>
-          <input
-            name="lastName"
-            value={profile.lastName || ""}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Profile Image URL</label>
-          <input
-            name="profileImageUrl"
-            value={profile.profileImageUrl || ""}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Biography</label>
-          <textarea
-            name="biography"
-            value={profile.biography || ""}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Motto</label>
-          <input
-            name="motto"
-            value={profile.motto || ""}
-            onChange={handleChange}
-          />
-        </div>
-
-        <button>Save Profile</button>
-
-        {message && <p className="success">{message}</p>}
-      </form>
-    </div>
-  );
+  return <div className="card form">
+    <h1>My Profile</h1>
+    {loading && <p>Loading profile...</p>}
+    {error && <p className="error" role="alert">{error}</p>}
+    {message && <p className="success" role="status">{message}</p>}
+    {profile && <form onSubmit={save}>
+      {["username", "email", "role"].map((field) => <div className="input-group" key={field}>
+        <label htmlFor={"profile-" + field}>{field[0].toUpperCase() + field.slice(1)}</label>
+        <input id={"profile-" + field} value={profile[field] || ""} disabled />
+      </div>)}
+      {editable.map(([field, label]) => <div className="input-group" key={field}>
+        <label htmlFor={"profile-" + field}>{label}</label>
+        {field === "biography" ?
+          <textarea id={"profile-" + field} name={field} value={profile[field] || ""} onChange={change} disabled={busy} /> :
+          <input id={"profile-" + field} name={field} value={profile[field] || ""} onChange={change} disabled={busy} />}
+      </div>)}
+      <button disabled={busy}>{busy ? "Saving..." : "Save Profile"}</button>
+    </form>}
+  </div>;
 }
-
-export default ProfilePage;

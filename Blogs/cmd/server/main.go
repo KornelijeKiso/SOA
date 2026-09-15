@@ -38,6 +38,15 @@ func main() {
 	followHandler := handler.NewFollowHandler(followService)
 	commentHandler := handler.NewCommentHandler(commentService)
 
+	router := newRouter(blogHandler, followHandler, commentHandler)
+
+	err = router.Run(":" + cfg.Port)
+	if err != nil {
+		log.Fatal("Server failed: ", err)
+	}
+}
+
+func newRouter(blogHandler *handler.BlogHandler, followHandler *handler.FollowHandler, commentHandler *handler.CommentHandler) *gin.Engine {
 	router := gin.Default()
 
 	/*router.Use(cors.New(cors.Config{
@@ -64,7 +73,7 @@ func main() {
 		})
 	})
 
-	api := router.Group("/api")
+	api := router.Group("/api", handler.RequireIdentity())
 
 	api.POST("/blogs", blogHandler.CreateBlog)
 	api.GET("/blogs", blogHandler.GetAllBlogs)
@@ -79,8 +88,5 @@ func main() {
 	api.POST("/blogs/:blogId/comments", commentHandler.CreateComment)
 	api.GET("/blogs/:blogId/comments", commentHandler.GetCommentsByBlogID)
 
-	err = router.Run(":" + cfg.Port)
-	if err != nil {
-		log.Fatal("Server failed: ", err)
-	}
+	return router
 }

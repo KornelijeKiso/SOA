@@ -1,53 +1,55 @@
 import { tourAxios } from "./axiosConfig";
 
-export async function createTour(data) {
+const pathId = encodeURIComponent;
+
+export function createTour(data) {
   return tourAxios.post("/tours", data);
 }
-
-export async function getGuideTours(guideId) {
-  return tourAxios.get(`/tours/guide/${guideId}`);
+export function getGuideTours(guideId, config) {
+  return tourAxios.get("/tours/guide/" + pathId(guideId), config);
 }
-
-export async function getTourForTourist(tourId, touristId) {
-  return tourAxios.get(`/tours/${tourId}/tourist/${touristId}`);
+export function getTourForTourist(tourId, touristId, config) {
+  return tourAxios.get("/tours/" + pathId(tourId) + "/tourist/" + pathId(touristId), config);
 }
-
-export async function addKeyPoint(tourId, data) {
-  return tourAxios.post(`/tours/${tourId}/key-points`, data);
+export function publishTour(tourId, data) {
+  return tourAxios.post("/tours/" + pathId(tourId) + "/publish", data);
 }
-
-export async function savePosition(data) {
+export function archiveTour(tourId, data) {
+  return tourAxios.post("/tours/" + pathId(tourId) + "/archive", data);
+}
+export function getPublishedTours(touristId, config) {
+  return tourAxios.get("/tours/published", { ...config, params: { touristId } });
+}
+export function addKeyPoint(tourId, data) {
+  return tourAxios.post("/tours/" + pathId(tourId) + "/key-points", data);
+}
+export function savePosition(data) {
   return tourAxios.post("/positions", data);
 }
-
-export async function getPosition(touristId) {
-  return tourAxios.get(`/positions/${touristId}`);
+export function getPosition(touristId, config) {
+  return tourAxios.get("/positions/" + pathId(touristId), config);
 }
-
-export async function addToCart(data) {
+export function addToCart(data) {
   return tourAxios.post("/cart/add", data);
 }
-
-export async function getCart(touristId) {
-  return tourAxios.get(`/cart/${touristId}`);
+export function removeFromCart(data) {
+  return tourAxios.post("/cart/remove", data);
 }
-
-export async function checkoutCart(data) {
+export function getCart(touristId, config) {
+  return tourAxios.get("/cart/" + pathId(touristId), config);
+}
+export function checkoutCart(data) {
   return tourAxios.post("/cart/checkout", data);
 }
-
-export async function startExecution(data) {
-  return tourAxios.post("/executions/start", data);
+export function startExecution(data, config) {
+  return tourAxios.post("/executions/start", data, config);
 }
-
-export async function abandonExecution(touristId, tourId) {
-  return tourAxios.post(`/executions/${touristId}/${tourId}/abandon`);
+export function abandonExecution(touristId, tourId, config) {
+  return tourAxios.post("/executions/" + pathId(touristId) + "/" + pathId(tourId) + "/abandon", undefined, config);
 }
-
-export async function completeExecution(touristId, tourId) {
-  return tourAxios.post(`/executions/${touristId}/${tourId}/complete`);
+export function completeExecution(touristId, tourId, config) {
+  return tourAxios.post("/executions/" + pathId(touristId) + "/" + pathId(tourId) + "/complete", undefined, config);
 }
-
-export async function updateExecutionLocation(data) {
-  return tourAxios.post("/executions/location-update", data);
+export function updateExecutionLocation(data, config) {
+  return tourAxios.post("/executions/location-update", data, config);
 }

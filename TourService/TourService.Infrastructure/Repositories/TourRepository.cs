@@ -1,6 +1,7 @@
 using MongoDB.Driver;
 using TourService.Application.Interfaces;
 using TourService.Domain.Models;
+using TourService.Domain.Enums;
 using TourService.Infrastructure.Mongo;
 
 namespace TourService.Infrastructure.Repositories;
@@ -30,6 +31,11 @@ public class TourRepository : ITourRepository
     public async Task<Tour?> GetByIdAsync(string id)
     {
         return await _tours.Find(t => t.Id == id).FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Tour>> GetPublishedAsync()
+    {
+        return await _tours.Find(t => t.Status == TourStatus.Published).ToListAsync();
     }
 
     public async Task UpdateAsync(Tour tour)

@@ -23,11 +23,17 @@ public class Tour
 
     public double Price { get; set; } = 0;
 
+    public double Length { get; set; }
+
     public int Duration { get; set; }
 
     public List<string> Images { get; set; } = new();
 
     public List<string> Reviews { get; set; } = new();
+
+    [BsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public bool? IsPurchased { get; set; }
 
     public List<KeyPoint> KeyPoints { get; set; } = new();
 }

@@ -1,119 +1,65 @@
 import { useEffect, useState } from "react";
-import {
-  followUser,
-  unfollowUser,
-  getFollowers,
-  getFollowing,
-} from "../api/blogApi";
+import { followUser, unfollowUser, getFollowers, getFollowing } from "../api/blogApi";
 import { getUserId } from "../auth/authStorage";
+import { apiError, asList } from "../api/responseUtils";
 
-function FollowPage() {
+export default function FollowPage() {
   const userId = getUserId();
-
-  const [targetUserId, setTargetUserId] = useState("");
+  const [target, setTarget] = useState("");
   const [following, setFollowing] = useState([]);
   const [followers, setFollowers] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-
+  const [error, setError] = useState("");
+  async function load(signal) {
+    setLoading(true);
+    const results = await Promise.allSettled([getFollowing(userId, { signal }), getFollowers(userId, { signal })]);
+    if (signal?.aborted) return;
+    const errors = [];
+    if (results[0].status === "fulfilled") setFollowing(asList(results[0].value.data));
+    else errors.push(apiError(results[0].reason, "Could not load following."));
+    if (results[1].status === "fulfilled") setFollowers(asList(results[1].value.data));
+    else errors.push(apiError(results[1].reason, "Could not load followers."));
+    if (errors.length) setError(errors.join(" "));
+    setLoading(false);
+  }
   useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-  try {
-    const followingResponse = await getFollowing(userId);
-    const followersResponse = await getFollowers(userId);
-
-    setFollowing(followingResponse.data || []);
-    setFollowers(followersResponse.data || []);
-  } catch (err) {
-    console.error(err);
-    setFollowing([]);
-    setFollowers([]);
-  }
-}
-
-  async function handleFollow(e) {
-    e.preventDefault();
-    setMessage("");
-
+    const controller = new AbortController();
+    load(controller.signal);
+    return () => controller.abort();
+  }, [userId]);
+  async function changeFollow(followingId, remove = false) {
+    if (busy) return;
+    if (!followingId.trim() || followingId.trim() === userId) { setError("Enter another user's email."); return; }
+    setBusy(true); setError(""); setMessage("");
     try {
-      await followUser({
-        followerId: userId,
-        followingId: targetUserId,
-      });
-
-      setTargetUserId("");
-      setMessage("User followed successfully.");
-      loadData();
+      await (remove ? unfollowUser : followUser)({ followerId: userId, followingId: followingId.trim() });
+      if (!remove) setTarget("");
+      setMessage(remove ? "User unfollowed." : "User followed.");
+      await load();
     } catch (err) {
-      console.error(err);
-      setMessage("Follow failed.");
-    }
+      setError(apiError(err, remove ? "Unfollow failed." : "Follow failed."));
+    } finally { setBusy(false); }
   }
-
-  async function handleUnfollow(followingId) {
-    setMessage("");
-
-    try {
-      await unfollowUser({
-        followerId: userId,
-        followingId,
-      });
-
-      setMessage("User unfollowed successfully.");
-      loadData();
-    } catch (err) {
-      console.error(err);
-      setMessage("Unfollow failed.");
-    }
-  }
-
-  return (
-    <div className="card">
-      <h1>Follow Users</h1>
-
-      <form onSubmit={handleFollow} className="form-inline">
-        <input
-          value={targetUserId}
-          onChange={(e) => setTargetUserId(e.target.value)}
-          placeholder="Enter user email to follow"
-          required
-        />
-
-        <button>Follow</button>
-      </form>
-
-      {message && <p className="success">{message}</p>}
-
-      <hr />
-
-      <h2>Following</h2>
-
-{(!following || following.length === 0) && <p>You are not following anyone.</p>}
-
-{(following || []).map((follow) => (
-  <div className="list-row" key={follow.id || follow.followingId}>
-    <span>{follow.followingId}</span>
-    <button onClick={() => handleUnfollow(follow.followingId)}>
-      Unfollow
-    </button>
-  </div>
-))}
-
-      <hr />
-
-      <h2>Followers</h2>
-
-{(!followers || followers.length === 0) && <p>No followers yet.</p>}
-
-{(followers || []).map((follow) => (
-  <div className="list-row" key={follow.id || follow.followerId}>
-    <span>{follow.followerId}</span>
-  </div>
-))}
-    </div>
-  );
+  return <div className="card">
+    <h1>Follow Users</h1>
+    <form onSubmit={(event) => { event.preventDefault(); changeFollow(target); }} className="form-inline">
+      <label htmlFor="follow-email">User email</label>
+      <input id="follow-email" type="email" value={target} onChange={(event) => setTarget(event.target.value)} required disabled={busy} />
+      <button disabled={busy}>Follow</button>
+    </form>
+    {error && <p className="error" role="alert">{error}</p>}
+    {message && <p className="success" role="status">{message}</p>}
+    {loading && <p>Loading relationships...</p>}
+    <h2>Following</h2>
+    {!loading && following.length === 0 && <p>You are not following anyone.</p>}
+    {following.map((relation) => <div className="list-row" key={relation.id || relation.followingId}>
+      <span>{relation.followingId}</span>
+      <button disabled={busy || loading} onClick={() => changeFollow(relation.followingId, true)}>Unfollow</button>
+    </div>)}
+    <h2>Followers</h2>
+    {!loading && followers.length === 0 && <p>No followers yet.</p>}
+    {followers.map((relation) => <div className="list-row" key={relation.id || relation.followerId}>{relation.followerId}</div>)}
+  </div>;
 }
-
-export default FollowPage;

@@ -1,0 +1,17 @@
+.git
+.gradle
+build
+.idea
+.vscode
+.settings
+.classpath
+.project
+.factorypath
+*.iml
+*.ipr
+*.iws
+bin
+out
+.env
+.env.*
+!.env.example

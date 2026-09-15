@@ -5,16 +5,15 @@ import (
 	"time"
 
 	"blogs/internal/domain"
-	"blogs/internal/repository"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FollowService struct {
-	followRepository *repository.FollowRepository
+	followRepository FollowRepository
 }
 
-func NewFollowService(followRepository *repository.FollowRepository) *FollowService {
+func NewFollowService(followRepository FollowRepository) *FollowService {
 	return &FollowService{
 		followRepository: followRepository,
 	}

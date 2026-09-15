@@ -1,0 +1,68 @@
+services:
+  stakeholders:
+    build: ../Stakeholders
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${STAKEHOLDERS_MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    networks:
+      - soa
+
+  blogs:
+    build: ../Blogs
+    restart: unless-stopped
+    environment:
+      PORT: "8082"
+      MONGO_URI: ${BLOGS_MONGO_URI}
+      MONGO_DATABASE: ${BLOGS_MONGO_DATABASE}
+    networks:
+      - soa
+
+  tours:
+    build: ../TourService
+    restart: unless-stopped
+    environment:
+      MongoDbSettings__ConnectionString: ${TOURS_MONGO_URI}
+      MongoDbSettings__DatabaseName: ${TOURS_MONGO_DATABASE}
+      ASPNETCORE_URLS: "http://+:5281"
+    networks:
+      - soa
+
+  gateway:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      STAKEHOLDERS_URL: http://stakeholders:8081
+      BLOGS_URL: http://blogs:8082
+      TOURS_URL: http://tours:5281
+      FRONTEND_ORIGIN: http://localhost:5173
+    depends_on:
+      - stakeholders
+      - blogs
+      - tours
+    networks:
+      - soa
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8080/api
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - gateway
+    networks:
+      - soa
+
+networks:
+  soa:
+    name: soa-network
+    driver: bridge

@@ -1,6 +1,7 @@
 using TourService.Application.DTOs;
 using TourService.Application.Interfaces;
 using TourService.Domain.Models;
+using TourService.Domain.Enums;
 
 namespace TourService.Application.Services;
 
@@ -9,21 +10,30 @@ public class TourExecutionService
     private readonly ITourExecutionRepository _executionRepository;
     private readonly ITourRepository _tourRepository;
     private readonly IPurchaseTokenRepository _purchaseTokenRepository;
+    private readonly IPositionRepository _positionRepository;
 
     private const double KeyPointCompletionDistanceKm = 0.1;
 
     public TourExecutionService(
         ITourExecutionRepository executionRepository,
         ITourRepository tourRepository,
-        IPurchaseTokenRepository purchaseTokenRepository)
+        IPurchaseTokenRepository purchaseTokenRepository,
+        IPositionRepository positionRepository)
     {
         _executionRepository = executionRepository;
         _tourRepository = tourRepository;
         _purchaseTokenRepository = purchaseTokenRepository;
+        _positionRepository = positionRepository;
     }
 
     public async Task<TourExecution?> StartTourAsync(StartTourRequest request)
     {
+        var tour = await _tourRepository.GetByIdAsync(request.TourId);
+
+        if (tour == null ||
+            (tour.Status != TourStatus.Published && tour.Status != TourStatus.Archived))
+            return null;
+
         var purchased = await _purchaseTokenRepository.ExistsAsync(
             request.TouristId,
             request.TourId
@@ -40,11 +50,18 @@ public class TourExecutionService
         if (existing != null)
             return existing;
 
+        var position = await _positionRepository.GetByTouristIdAsync(request.TouristId);
+
+        if (position == null)
+            return null;
+
         var execution = new TourExecution
         {
             TouristId = request.TouristId,
             TourId = request.TourId,
             Status = "Started",
+            StartLatitude = position.Latitude,
+            StartLongitude = position.Longitude,
             StartTime = DateTime.UtcNow,
             LastActivity = DateTime.UtcNow
         };

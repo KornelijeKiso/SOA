@@ -2,11 +2,13 @@ const TOKEN_KEY = "token";
 const PROFILE_KEY = "profile";
 
 export function saveToken(token) {
+  if (typeof token !== "string" || !token.trim()) throw new Error("Missing login token.");
   localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  return token && token !== "undefined" && token !== "null" ? token : null;
 }
 
 export function saveProfile(profile) {
@@ -14,13 +16,20 @@ export function saveProfile(profile) {
 }
 
 export function getProfile() {
-  const profile = localStorage.getItem(PROFILE_KEY);
-  return profile ? JSON.parse(profile) : null;
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+  } catch {
+    return null;
+  }
 }
 
 export function getUserId() {
-  const profile = getProfile();
-  return profile?.email || "";
+  const email = getProfile()?.email;
+  return typeof email === "string" ? email : "";
+}
+
+export function getRole() {
+  return getProfile()?.role;
 }
 
 export function logout() {
@@ -29,5 +38,9 @@ export function logout() {
 }
 
 export function isLoggedIn() {
-  return !!getToken();
+  return Boolean(getToken() && getUserId() && ["GUIDE", "TOURIST"].includes(getRole()));
+}
+
+export function homePath() {
+  return isLoggedIn() ? (getRole() === "GUIDE" ? "/tours" : "/tours/published") : "/login";
 }

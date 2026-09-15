@@ -4,6 +4,7 @@ import com.example.stakeholders.model.Role;
 import com.example.stakeholders.model.User;
 import com.example.stakeholders.repository.UserRepository;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,15 @@ public class AdminInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${ADMIN_USERNAME}")
+    private String adminUsername;
+
+    @Value("${ADMIN_EMAIL}")
+    private String adminEmail;
+
+    @Value("${ADMIN_PASSWORD}")
+    private String adminPassword;
 
     public AdminInitializer(
             UserRepository userRepository,
@@ -25,14 +35,12 @@ public class AdminInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        String adminEmail = "admin@admin.com";
-
         if (!userRepository.existsByEmail(adminEmail)) {
 
             User admin = new User(
-                    "admin",
+                    adminUsername,
                     adminEmail,
-                    passwordEncoder.encode("admin123"),
+                    passwordEncoder.encode(adminPassword),
                     Role.ADMIN
             );
 

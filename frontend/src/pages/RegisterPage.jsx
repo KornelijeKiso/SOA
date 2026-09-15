@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../api/authApi";
 
+import { apiError } from "../api/responseUtils";
+
 function RegisterPage() {
   const navigate = useNavigate();
 
@@ -13,6 +15,7 @@ function RegisterPage() {
   });
 
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   function handleChange(e) {
     setForm({
@@ -23,14 +26,17 @@ function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (busy) return;
+    setBusy(true);
     setError("");
 
     try {
       await registerUser(form);
       navigate("/login");
     } catch (err) {
-      console.error(err);
-      setError("Registration failed.");
+      setError(apiError(err, "Registration failed."));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -79,7 +85,7 @@ function RegisterPage() {
           </select>
         </div>
 
-        <button type="submit">Register</button>
+        <button type="submit" disabled={busy}>Register</button>
 
         {error && <p className="error">{error}</p>}
       </form>

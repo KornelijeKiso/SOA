@@ -2,6 +2,7 @@ using TourService.Application.Interfaces;
 using TourService.Infrastructure.Mongo;
 using TourService.Infrastructure.Repositories;
 using TourService.Application.Services;
+using TourService.Api.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseRouting();
+app.UseMiddleware<GatewayIdentityMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

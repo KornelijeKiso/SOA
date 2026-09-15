@@ -31,6 +31,7 @@ func (h *FollowHandler) FollowUser(c *gin.Context) {
 		return
 	}
 
+	request.FollowerID = c.GetString(identityEmailKey)
 	follow, err := h.followService.FollowUser(request.FollowerID, request.FollowingID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -48,6 +49,7 @@ func (h *FollowHandler) UnfollowUser(c *gin.Context) {
 		return
 	}
 
+	request.FollowerID = c.GetString(identityEmailKey)
 	err := h.followService.UnfollowUser(request.FollowerID, request.FollowingID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -58,6 +60,9 @@ func (h *FollowHandler) UnfollowUser(c *gin.Context) {
 }
 
 func (h *FollowHandler) GetFollowing(c *gin.Context) {
+	if !requireOwnUserPath(c) {
+		return
+	}
 	userID := c.Param("userId")
 
 	following, err := h.followService.GetFollowing(userID)
@@ -70,6 +75,9 @@ func (h *FollowHandler) GetFollowing(c *gin.Context) {
 }
 
 func (h *FollowHandler) GetFollowers(c *gin.Context) {
+	if !requireOwnUserPath(c) {
+		return
+	}
 	userID := c.Param("userId")
 
 	followers, err := h.followService.GetFollowers(userID)

@@ -5,21 +5,20 @@ import (
 	"time"
 
 	"blogs/internal/domain"
-	"blogs/internal/repository"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CommentService struct {
-	commentRepository *repository.CommentRepository
-	blogRepository    *repository.BlogRepository
-	followRepository  *repository.FollowRepository
+	commentRepository CommentRepository
+	blogRepository    BlogRepository
+	followRepository  FollowRepository
 }
 
 func NewCommentService(
-	commentRepository *repository.CommentRepository,
-	blogRepository *repository.BlogRepository,
-	followRepository *repository.FollowRepository,
+	commentRepository CommentRepository,
+	blogRepository BlogRepository,
+	followRepository FollowRepository,
 ) *CommentService {
 	return &CommentService{
 		commentRepository: commentRepository,

@@ -1,41 +1,33 @@
 import { blogAxios } from "./axiosConfig";
+const pathId = encodeURIComponent;
 
-export async function getAllBlogs() {
-  return blogAxios.get("/blogs");
+export function getAllBlogs(config) {
+  return blogAxios.get("/blogs", config);
 }
-
-export async function getBlogById(blogId) {
-  return blogAxios.get(`/blogs/${blogId}`);
+export function getBlogById(blogId, config) {
+  return blogAxios.get("/blogs/" + pathId(blogId), config);
 }
-
-export async function getBlogsByUser(userId) {
-  return blogAxios.get(`/users/${userId}/blogs`);
+export function getBlogsByUser(userId, config) {
+  return blogAxios.get("/users/" + pathId(userId) + "/blogs", config);
 }
-
-export async function createBlog(data) {
+export function createBlog(data) {
   return blogAxios.post("/blogs", data);
 }
-
-export async function getBlogComments(blogId) {
-  return blogAxios.get(`/blogs/${blogId}/comments`);
+export function getBlogComments(blogId, config) {
+  return blogAxios.get("/blogs/" + pathId(blogId) + "/comments", config);
 }
-
-export async function addBlogComment(blogId, data) {
-  return blogAxios.post(`/blogs/${blogId}/comments`, data);
+export function addBlogComment(blogId, data) {
+  return blogAxios.post("/blogs/" + pathId(blogId) + "/comments", data);
 }
-
-export async function followUser(data) {
+export function followUser(data) {
   return blogAxios.post("/follow", data);
 }
-
-export async function unfollowUser(data) {
+export function unfollowUser(data) {
   return blogAxios.delete("/follow", { data });
 }
-
-export async function getFollowing(userId) {
-  return blogAxios.get(`/users/${userId}/following`);
+export function getFollowing(userId, config) {
+  return blogAxios.get("/users/" + pathId(userId) + "/following", config);
 }
-
-export async function getFollowers(userId) {
-  return blogAxios.get(`/users/${userId}/followers`);
+export function getFollowers(userId, config) {
+  return blogAxios.get("/users/" + pathId(userId) + "/followers", config);
 }

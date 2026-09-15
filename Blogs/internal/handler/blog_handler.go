@@ -33,6 +33,7 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 		return
 	}
 
+	request.UserID = c.GetString(identityEmailKey)
 	blog, err := h.blogService.CreateBlog(
 		request.UserID,
 		request.Title,

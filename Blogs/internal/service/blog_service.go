@@ -5,16 +5,15 @@ import (
 	"time"
 
 	"blogs/internal/domain"
-	"blogs/internal/repository"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BlogService struct {
-	blogRepository *repository.BlogRepository
+	blogRepository BlogRepository
 }
 
-func NewBlogService(blogRepository *repository.BlogRepository) *BlogService {
+func NewBlogService(blogRepository BlogRepository) *BlogService {
 	return &BlogService{
 		blogRepository: blogRepository,
 	}

@@ -48,10 +48,10 @@ public class AuthService {
                 role
         );
 
-        userRepository.save(user);
+        user = userRepository.save(user);
 
         String token =
-                jwtService.generateToken(user.getEmail());
+                jwtService.generateToken(user);
 
         return new AuthResponse(token);
     }
@@ -71,7 +71,7 @@ public class AuthService {
         }
 
         String token =
-                jwtService.generateToken(user.getEmail());
+                jwtService.generateToken(user);
 
         return new AuthResponse(token);
     }

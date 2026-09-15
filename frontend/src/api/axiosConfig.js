@@ -29,7 +29,7 @@ authAxios.interceptors.request.use((config) => {
 import axios from "axios";
 import { getToken } from "../auth/authStorage";
 
-const GATEWAY_API = "http://localhost:8080/api";
+const GATEWAY_API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 export const authAxios = axios.create({
   baseURL: GATEWAY_API,

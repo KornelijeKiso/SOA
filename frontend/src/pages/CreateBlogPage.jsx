@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { createBlog } from "../api/blogApi";
 import { getUserId } from "../auth/authStorage";
 
+import { apiError, commaList } from "../api/responseUtils";
+
 function CreateBlogPage() {
   const navigate = useNavigate();
 
@@ -13,6 +15,7 @@ function CreateBlogPage() {
   });
 
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   function handleChange(e) {
     setForm({
@@ -23,6 +26,8 @@ function CreateBlogPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (busy) return;
+    setBusy(true);
     setError("");
 
     try {
@@ -30,15 +35,14 @@ function CreateBlogPage() {
         userId: getUserId(),
         title: form.title,
         description: form.description,
-        images: form.images
-          ? form.images.split(",").map((img) => img.trim())
-          : [],
+        images: commaList(form.images),
       });
 
       navigate("/blogs");
     } catch (err) {
-      console.error(err);
-      setError("Failed to create blog.");
+      setError(apiError(err, "Failed to create blog."));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -77,7 +81,7 @@ function CreateBlogPage() {
           />
         </div>
 
-        <button>Create</button>
+        <button disabled={busy}>Create</button>
 
         {error && <p className="error">{error}</p>}
       </form>

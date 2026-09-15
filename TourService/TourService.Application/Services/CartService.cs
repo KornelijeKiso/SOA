@@ -28,7 +28,7 @@ public class CartService
         if (tour == null)
             return null;
 
-        if (tour.Status == TourStatus.Archived)
+        if (tour.Status != TourStatus.Published)
             return null;
 
         var alreadyPurchased = await _purchaseTokenRepository.ExistsAsync(
@@ -62,12 +62,30 @@ public class CartService
         return await _cartRepository.GetByTouristIdAsync(touristId);
     }
 
+    public async Task<ShoppingCart?> RemoveFromCartAsync(RemoveFromCartRequest request)
+    {
+        var cart = await _cartRepository.GetByTouristIdAsync(request.TouristId);
+
+        if (cart == null)
+            return null;
+
+        cart.Items.RemoveAll(item => item.TourId == request.TourId);
+        return await _cartRepository.SaveAsync(cart);
+    }
+
     public async Task<List<TourPurchaseToken>?> CheckoutAsync(CheckoutRequest request)
     {
         var cart = await _cartRepository.GetByTouristIdAsync(request.TouristId);
 
         if (cart == null || cart.Items.Count == 0)
             return null;
+
+        foreach (var item in cart.Items)
+        {
+            var tour = await _tourRepository.GetByIdAsync(item.TourId);
+            if (tour == null || tour.Status != TourStatus.Published)
+                return null;
+        }
 
         var tokens = new List<TourPurchaseToken>();
 
