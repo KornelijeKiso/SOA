@@ -1,0 +1,30 @@
+services:
+  gateway:
+    build: ./GatewayService
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - stakeholders
+      - blogs
+      - tourservice
+
+  stakeholders:
+    build: ./Stakeholders
+    container_name: stakeholders-service
+    ports:
+      - "8081:8081"
+
+  blogs:
+    build: ./blogs
+    container_name: blog-service
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: 8082
+
+  tourservice:
+    build: ./TourService
+    container_name: tour-service
+    ports:
+      - "5281:5281"
