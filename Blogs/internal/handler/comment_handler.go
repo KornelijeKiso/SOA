@@ -40,6 +40,7 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
+	eventLogger.Info("comment_created", "comment_id", comment.ID.Hex(), "blog_id", comment.BlogID.Hex())
 	c.JSON(http.StatusCreated, comment)
 }
 

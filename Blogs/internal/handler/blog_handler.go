@@ -46,6 +46,7 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 		return
 	}
 
+	eventLogger.Info("blog_created", "blog_id", blog.ID.Hex())
 	c.JSON(http.StatusCreated, blog)
 }
 

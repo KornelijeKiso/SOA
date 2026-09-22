@@ -38,6 +38,7 @@ func (h *FollowHandler) FollowUser(c *gin.Context) {
 		return
 	}
 
+	eventLogger.Info("user_followed", "follow_id", follow.ID.Hex())
 	c.JSON(http.StatusCreated, follow)
 }
 
@@ -56,6 +57,7 @@ func (h *FollowHandler) UnfollowUser(c *gin.Context) {
 		return
 	}
 
+	eventLogger.Info("user_unfollowed")
 	c.JSON(http.StatusOK, gin.H{"message": "unfollowed successfully"})
 }
 
