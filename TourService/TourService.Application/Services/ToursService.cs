@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using TourService.Application.DTOs;
 using TourService.Application.Interfaces;
 using TourService.Domain.Models;
@@ -9,13 +10,16 @@ public class ToursService
 {
     private readonly ITourRepository _tourRepository;
     private readonly IPurchaseTokenRepository _purchaseTokenRepository;
+    private readonly ILogger<ToursService> _logger;
 
     public ToursService(
         ITourRepository tourRepository,
-        IPurchaseTokenRepository purchaseTokenRepository)
+        IPurchaseTokenRepository purchaseTokenRepository,
+        ILogger<ToursService> logger)
     {
         _tourRepository = tourRepository;
         _purchaseTokenRepository = purchaseTokenRepository;
+        _logger = logger;
     }
 
     public async Task<Tour> CreateTourAsync(CreateTourRequest request)
@@ -29,7 +33,9 @@ public class ToursService
             Tags = request.Tags
         };
 
-        return await _tourRepository.CreateAsync(tour);
+        var created = await _tourRepository.CreateAsync(tour);
+        _logger.LogInformation("tour_created TourId={TourId}", created.Id);
+        return created;
     }
 
     public async Task<List<Tour>> GetGuideToursAsync(string guideId)
@@ -68,6 +74,7 @@ public class ToursService
         tour.Status = TourStatus.Published;
 
         await _tourRepository.UpdateAsync(tour);
+        _logger.LogInformation("tour_published TourId={TourId}", tour.Id);
         return tour;
     }
 
@@ -81,6 +88,7 @@ public class ToursService
         tour.Status = TourStatus.Archived;
 
         await _tourRepository.UpdateAsync(tour);
+        _logger.LogInformation("tour_archived TourId={TourId}", tour.Id);
         return tour;
     }
 
@@ -119,6 +127,7 @@ public class ToursService
         });
 
         await _tourRepository.UpdateAsync(tour);
+        _logger.LogInformation("key_point_added TourId={TourId} KeyPointId={KeyPointId}", tour.Id, tour.KeyPoints[^1].Id);
 
         return tour;
     }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using TourService.Application.DTOs;
 using TourService.Application.Interfaces;
 using TourService.Domain.Models;
@@ -11,6 +12,7 @@ public class TourExecutionService
     private readonly ITourRepository _tourRepository;
     private readonly IPurchaseTokenRepository _purchaseTokenRepository;
     private readonly IPositionRepository _positionRepository;
+    private readonly ILogger<TourExecutionService> _logger;
 
     private const double KeyPointCompletionDistanceKm = 0.1;
 
@@ -18,12 +20,14 @@ public class TourExecutionService
         ITourExecutionRepository executionRepository,
         ITourRepository tourRepository,
         IPurchaseTokenRepository purchaseTokenRepository,
-        IPositionRepository positionRepository)
+        IPositionRepository positionRepository,
+        ILogger<TourExecutionService> logger)
     {
         _executionRepository = executionRepository;
         _tourRepository = tourRepository;
         _purchaseTokenRepository = purchaseTokenRepository;
         _positionRepository = positionRepository;
+        _logger = logger;
     }
 
     public async Task<TourExecution?> StartTourAsync(StartTourRequest request)
@@ -66,7 +70,9 @@ public class TourExecutionService
             LastActivity = DateTime.UtcNow
         };
 
-        return await _executionRepository.CreateAsync(execution);
+        var created = await _executionRepository.CreateAsync(execution);
+        _logger.LogInformation("execution_started ExecutionId={ExecutionId} TourId={TourId}", created.Id, created.TourId);
+        return created;
     }
 
     public async Task<TourExecution?> AbandonTourAsync(string touristId, string tourId)
@@ -81,6 +87,8 @@ public class TourExecutionService
         execution.LastActivity = DateTime.UtcNow;
 
         await _executionRepository.UpdateAsync(execution);
+
+        _logger.LogInformation("execution_abandoned ExecutionId={ExecutionId} TourId={TourId}", execution.Id, execution.TourId);
 
         return execution;
     }
@@ -97,6 +105,8 @@ public class TourExecutionService
         execution.LastActivity = DateTime.UtcNow;
 
         await _executionRepository.UpdateAsync(execution);
+
+        _logger.LogInformation("execution_completed ExecutionId={ExecutionId} TourId={TourId}", execution.Id, execution.TourId);
 
         return execution;
     }

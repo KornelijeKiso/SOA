@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using TourService.Application.DTOs;
 using TourService.Application.Interfaces;
 using TourService.Domain.Enums;
@@ -10,15 +11,18 @@ public class CartService
     private readonly IShoppingCartRepository _cartRepository;
     private readonly ITourRepository _tourRepository;
     private readonly IPurchaseTokenRepository _purchaseTokenRepository;
+    private readonly ILogger<CartService> _logger;
 
     public CartService(
         IShoppingCartRepository cartRepository,
         ITourRepository tourRepository,
-        IPurchaseTokenRepository purchaseTokenRepository)
+        IPurchaseTokenRepository purchaseTokenRepository,
+        ILogger<CartService> logger)
     {
         _cartRepository = cartRepository;
         _tourRepository = tourRepository;
         _purchaseTokenRepository = purchaseTokenRepository;
+        _logger = logger;
     }
 
     public async Task<ShoppingCart?> AddToCartAsync(AddToCartRequest request)
@@ -103,6 +107,7 @@ public class CartService
         }
 
         await _cartRepository.DeleteAsync(cart.Id!);
+        _logger.LogInformation("cart_checked_out ItemCount={ItemCount}", tokens.Count);
 
         return tokens;
     }
