@@ -5,10 +5,14 @@ import com.example.stakeholders.dto.UpdateProfileRequest;
 import com.example.stakeholders.model.User;
 import com.example.stakeholders.repository.UserRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProfileService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProfileService.class);
 
     private final UserRepository userRepository;
 
@@ -53,6 +57,7 @@ public class ProfileService {
 
         userRepository.save(user);
 
+        log.info("event=profile_updated");
         return new ProfileResponse(
                 user.getUsername(),
                 user.getEmail(),

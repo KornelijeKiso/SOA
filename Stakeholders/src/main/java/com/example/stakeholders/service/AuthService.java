@@ -8,11 +8,15 @@ import com.example.stakeholders.model.User;
 import com.example.stakeholders.repository.UserRepository;
 import com.example.stakeholders.security.JwtService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -53,6 +57,7 @@ public class AuthService {
         String token =
                 jwtService.generateToken(user);
 
+        log.info("event=user_registered role={}", user.getRole());
         return new AuthResponse(token);
     }
 
@@ -73,6 +78,7 @@ public class AuthService {
         String token =
                 jwtService.generateToken(user);
 
+        log.info("event=user_logged_in role={}", user.getRole());
         return new AuthResponse(token);
     }
 }
