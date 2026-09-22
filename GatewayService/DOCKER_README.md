@@ -31,9 +31,24 @@ Frontend: http://localhost:5173
 Gateway API: http://localhost:8080/api
 Gateway health: http://localhost:8080/actuator/health
 
-Only frontend and gateway ports are published. All services share the
+Frontend, gateway, and Grafana ports are published. All services share the
 soa-network bridge network and restart unless stopped.
 depends_on controls startup order, not backend readiness.
+
+## Logs in Grafana
+
+Grafana: http://localhost:3000 (use Grafana's initial login and change the
+password when prompted). Loki is provisioned as the default data source.
+Open Explore, select Loki, and run:
+
+```logql
+{service=~"stakeholders|blogs|tours|gateway|frontend"}
+```
+
+Use `{service="tours"}` to view one app. Set the time range to the last 15
+minutes. Alloy reads the five app containers' stdout/stderr through the Docker
+socket. Loki and Alloy have no published ports. Grafana and Loki use named
+volumes; `docker compose down -v` deletes their stored data.
 
 To validate the template without real credentials or image builds:
 
